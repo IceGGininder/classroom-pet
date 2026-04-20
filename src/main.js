@@ -202,10 +202,16 @@ document.addEventListener('alpine:init', () => {
   }));
 });
 
-// PWA: 註冊 service worker 讓電子寵物可離線使用
+// PWA: service worker 暫時停用（開發期間卡快取讓新改檔不生效）
+// 部署到 Cloudflare Pages 後再開回來。同時主動反註冊舊 SW + 清快取。
 if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./service-worker.js').catch(console.warn);
+  window.addEventListener('load', async () => {
+    const regs = await navigator.serviceWorker.getRegistrations();
+    for (const r of regs) await r.unregister();
+    if (window.caches) {
+      const keys = await caches.keys();
+      for (const k of keys) await caches.delete(k);
+    }
   });
 }
 
