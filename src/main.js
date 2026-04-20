@@ -72,17 +72,9 @@ async function ensureCalibrated() {
   });
 }
 
-async function boot() {
-  try {
-    await detector.start();
-  } catch (e) {
-    alert('無法啟動麥克風（請允許權限並重新整理）：' + e.message);
-    return;
-  }
-  await ensureCalibrated();
-
-  // 主 tick：每秒跑一次
+function startMainTick() {
   setInterval(() => {
+    // 麥克風未啟用時，db=null → classifyVolume 回傳 'quiet'（設計哲學：偵測不到=安靜）
     const db = detector.getCurrentDb();
     const verdict = classifyVolume(
       db,
@@ -112,8 +104,26 @@ async function boot() {
 
     saveState(state);
   }, 1000);
+  console.log('[main] tick loop started');
+}
 
-  console.log('[main] booted. Mic running, mood engine ticking.');
+async function boot() {
+  // 立即啟動 main tick，UI 先跑起來（不等麥克風）
+  startMainTick();
+
+  // 嘗試啟動麥克風（失敗也不中斷 UI）
+  try {
+    await detector.start();
+    console.log('[main] mic started');
+  } catch (e) {
+    console.warn('[main] mic unavailable:', e.message);
+    notify('⚠️ 麥克風不可用', `${e.message}。目前為離線模式（偵測不到 = 安靜）。`);
+    return;
+  }
+
+  // 有麥克風才跑校準
+  await ensureCalibrated();
+  console.log('[main] calibration done, baseline:', state.settings.calibration.baselineDb);
 }
 
 // 註冊 Alpine 組件（先註冊再 boot，避免競態）

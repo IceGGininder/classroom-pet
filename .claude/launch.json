@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "classroom-pet",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["serve", "-p", "5173", "D:/CCdesk/Projects/classroom-pet"],
+      "port": 5173
+    }
+  ]
+}
