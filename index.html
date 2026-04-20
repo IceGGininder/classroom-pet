@@ -10,8 +10,41 @@
 <script type="module" src="./src/main.js"></script>
 </head>
 <body class="bg-slate-100 text-slate-800">
-<div id="app" x-data class="min-h-screen flex items-center justify-center">
-  <h1 class="text-3xl font-bold">課堂電子寵物（開發中）</h1>
+<div x-data="petDisplay" :class="bgClass" class="min-h-screen flex flex-col transition-colors duration-1000">
+
+  <!-- 寵物區 -->
+  <div class="flex-1 flex items-center justify-center relative">
+    <div class="text-center transition-all duration-1000" :class="petAnimationClass">
+      <div class="text-[200px] leading-none" x-text="petEmoji"></div>
+      <div class="text-4xl mt-4" x-text="stateIcon"></div>
+      <div class="mt-8 text-sm opacity-60" x-show="visualState === 'scared'">
+        太吵了...小精靈不敢出來
+      </div>
+    </div>
+  </div>
+
+  <!-- 資訊列 -->
+  <div class="bg-white/80 backdrop-blur p-4 flex items-center justify-between border-t">
+    <div class="flex items-center gap-4">
+      <div>
+        <div class="text-xs opacity-60">心情</div>
+        <div class="font-bold" x-text="mood"></div>
+      </div>
+      <div>
+        <div class="text-xs opacity-60">階段</div>
+        <div class="font-bold" x-text="stageInfo.currentStage"></div>
+      </div>
+    </div>
+    <div class="flex-1 mx-8">
+      <div class="text-xs opacity-60 mb-1">
+        <span x-text="stageInfo.current"></span> / <span x-text="stageInfo.needed"></span> 經驗值
+      </div>
+      <div class="bg-slate-200 rounded-full h-2 overflow-hidden">
+        <div class="bg-sky-500 h-full transition-all duration-500"
+             :style="`width: ${stageInfo.progress * 100}%`"></div>
+      </div>
+    </div>
+  </div>
 </div>
 </body>
 </html>
