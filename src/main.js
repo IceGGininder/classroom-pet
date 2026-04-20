@@ -117,4 +117,11 @@ document.addEventListener('alpine:init', () => {
   window.Alpine.data('notifications', notificationsComponent);
 });
 
+// PWA: 註冊 service worker 讓電子寵物可離線使用
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./service-worker.js').catch(console.warn);
+  });
+}
+
 console.log('[main] booted. 試試 window.__setFakeVerdict("veryLoud") 看狀態切換');

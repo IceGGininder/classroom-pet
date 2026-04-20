@@ -1,0 +1,16 @@
+{
+  "name": "課堂電子寵物",
+  "short_name": "電子寵物",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f1f5f9",
+  "theme_color": "#0ea5e9",
+  "orientation": "landscape",
+  "lang": "zh-Hant",
+  "description": "透過音量偵測培養學生自制力的班級電子寵物",
+  "icons": [
+    { "src": "./assets/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "./assets/icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}
