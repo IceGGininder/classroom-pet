@@ -7,6 +7,8 @@ import { createMoodEngine } from './state/moodEngine.js';
 import { getNextStageProgress } from './state/petState.js';
 import { petDisplayComponent } from './ui/petDisplay.js';
 import { controlsComponent } from './ui/controls.js';
+import { settingsModalComponent } from './ui/settings.js';
+import { exportToJson, importFromJsonFile } from './state/exportImport.js';
 
 // 載入狀態
 const state = loadState();
@@ -69,6 +71,28 @@ document.addEventListener('alpine:init', () => {
       state.pet.currentMood = 60;
       saveState(state);
     },
+  }));
+
+  window.Alpine.data('settingsModal', () => settingsModalComponent({
+    getState: () => state,
+    onRenamePet: (name) => {
+      state.pet.name = name;
+      saveState(state);
+    },
+    onApplyThresholdPreset: (thresholds, preset) => {
+      state.settings.stageThresholds = thresholds;
+      state.settings.thresholdPreset = preset;
+      saveState(state);
+    },
+    onRecalibrate: () => {
+      state.settings.calibration.baselineDb = null;
+      state.settings.calibration.calibratedAt = null;
+      saveState(state);
+      // Task 14 會在啟動時偵測到 baselineDb=null 並觸發校準畫面
+      location.reload();
+    },
+    onExport: exportToJson,
+    onImport: importFromJsonFile,
   }));
 });
 
