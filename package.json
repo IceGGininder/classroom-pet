@@ -1,0 +1,15 @@
+{
+  "name": "classroom-pet",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "課堂自制電子寵物 — 透過音量偵測培養學生自制力",
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "dev": "npx serve -p 5173 ."
+  },
+  "devDependencies": {
+    "vitest": "^1.6.0",
+    "happy-dom": "^14.10.0"
+  }
+}
