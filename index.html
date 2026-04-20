@@ -150,6 +150,15 @@
       </div>
     </div>
   </div>
+
+  <!-- 即時音量條（最底部，老師參考用） -->
+  <div x-data="volumeBar" class="px-4 pb-2 bg-white/80">
+    <div class="text-xs opacity-50 mb-1">即時音量</div>
+    <div class="bg-slate-200 rounded-full h-1 overflow-hidden">
+      <div class="bg-sky-400 h-full transition-all duration-100"
+           :style="`width: ${widthPct}%`"></div>
+    </div>
+  </div>
 </div>
 </body>
 </html>

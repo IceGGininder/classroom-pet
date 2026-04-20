@@ -1,11 +1,14 @@
 // src/main.js
 // 進入點：組合所有模組並啟動 Alpine 組件。
-// Phase 1 MVP Task 10：接上老師控制面板；真麥克風在 Task 14 接上。
+// Phase 1 MVP Task 14：整合真麥克風 + 首次校準。
 
 import { loadState, saveState } from './state/storage.js';
 import { createMoodEngine } from './state/moodEngine.js';
 import { getNextStageProgress, getStageFromExp } from './state/petState.js';
 import { unlockForStage } from './state/skillSystem.js';
+import { classifyVolume } from './state/modeConfig.js';
+import { createVolumeDetector } from './audio/volumeDetector.js';
+import { calibrate } from './audio/calibration.js';
 import { petDisplayComponent } from './ui/petDisplay.js';
 import { controlsComponent } from './ui/controls.js';
 import { settingsModalComponent } from './ui/settings.js';
@@ -15,44 +18,105 @@ import { exportToJson, importFromJsonFile } from './state/exportImport.js';
 // 載入狀態
 const state = loadState();
 const engine = createMoodEngine({ initialMood: state.pet.currentMood });
+const detector = createVolumeDetector();
 let lastStage = state.pet.stage;
-
-// Task 12 階段：用假音量驅動 + 升階通知；真麥克風在 Task 14 接上。
-// 在瀏覽器 console 可以手動呼叫：
-//   window.__setFakeVerdict('veryLoud' | 'loud' | 'acceptable' | 'quiet')
-let fakeVerdict = 'quiet';
-window.__setFakeVerdict = (v) => { fakeVerdict = v; };
 
 function currentMode() {
   if (state.settings.isPaused) return 'paused';
   return state.settings.currentMode;
 }
 
-// 主 tick：每秒跑一次
-setInterval(() => {
-  engine.tick(fakeVerdict, currentMode());
-  state.pet.currentMood = engine.getMood();
-  state.pet.totalExp = (state.pet.totalExp || 0) + engine.consumeSessionExp();
+// 暴露音量給 UI 顯示
+window.__getDb = () => detector.getCurrentDb();
 
-  // 升階偵測 + 技能解鎖
-  const currentStage = getStageFromExp(state.pet.totalExp, state.settings.stageThresholds);
-  if (currentStage !== lastStage) {
-    const skill = unlockForStage(currentStage, state.skills.unlocked);
-    if (skill) {
-      state.skills.unlocked.push({ ...skill, unlockedAt: new Date().toISOString() });
-    }
-    state.pet.stage = currentStage;
-    if (!state.settings.isMuted) {
-      const skillMsg = skill ? ` 學會新技能：${skill.name}！` : '';
-      notify('🎉 升階了！', `${state.pet.name} 進化到 ${currentStage}！${skillMsg}`);
-    }
-    lastStage = currentStage;
+async function ensureCalibrated() {
+  if (state.settings.calibration.baselineDb != null) return;
+
+  // 顯示校準 overlay
+  const overlay = document.createElement('div');
+  overlay.id = 'calibration-overlay';
+  overlay.className = 'fixed inset-0 bg-black/80 text-white flex items-center justify-center z-[60]';
+  overlay.innerHTML = `
+    <div class="text-center max-w-lg px-6">
+      <div class="text-5xl mb-6">🎤</div>
+      <div class="text-2xl font-bold mb-3">小精靈要認識你們的教室</div>
+      <div class="text-sm opacity-80 mb-8">請讓教室保持一般安靜狀態，10 秒後完成校準。</div>
+      <button id="calibration-start"
+              class="px-6 py-3 bg-sky-500 text-white rounded-lg font-bold text-lg">
+        開始校準
+      </button>
+      <div id="calibration-progress" class="mt-8 text-3xl font-bold hidden">0 / 10 秒</div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+
+  await new Promise(resolve => {
+    overlay.querySelector('#calibration-start').addEventListener('click', async () => {
+      overlay.querySelector('#calibration-start').classList.add('hidden');
+      overlay.querySelector('#calibration-progress').classList.remove('hidden');
+      try {
+        const baseline = await calibrate(detector, 10, ({ elapsed, total }) => {
+          overlay.querySelector('#calibration-progress').textContent = `${elapsed} / ${total} 秒`;
+        });
+        state.settings.calibration.baselineDb = baseline;
+        state.settings.calibration.calibratedAt = new Date().toISOString();
+        saveState(state);
+        overlay.remove();
+        resolve();
+      } catch (e) {
+        alert('校準失敗：' + e.message);
+        overlay.remove();
+        resolve();
+      }
+    }, { once: true });
+  });
+}
+
+async function boot() {
+  try {
+    await detector.start();
+  } catch (e) {
+    alert('無法啟動麥克風（請允許權限並重新整理）：' + e.message);
+    return;
   }
+  await ensureCalibrated();
 
-  saveState(state);
-}, 1000);
+  // 主 tick：每秒跑一次
+  setInterval(() => {
+    const db = detector.getCurrentDb();
+    const verdict = classifyVolume(
+      db,
+      state.settings.calibration.baselineDb,
+      state.settings.currentMode,
+      state.settings.modes[state.settings.currentMode].adjustment,
+    );
 
-// 註冊 Alpine 組件
+    engine.tick(verdict, currentMode());
+    state.pet.currentMood = engine.getMood();
+    state.pet.totalExp = (state.pet.totalExp || 0) + engine.consumeSessionExp();
+
+    // 升階偵測 + 技能解鎖
+    const currentStage = getStageFromExp(state.pet.totalExp, state.settings.stageThresholds);
+    if (currentStage !== lastStage) {
+      const skill = unlockForStage(currentStage, state.skills.unlocked);
+      if (skill) {
+        state.skills.unlocked.push({ ...skill, unlockedAt: new Date().toISOString() });
+      }
+      state.pet.stage = currentStage;
+      if (!state.settings.isMuted) {
+        const skillMsg = skill ? ` 學會新技能：${skill.name}！` : '';
+        notify('🎉 升階了！', `${state.pet.name} 進化到 ${currentStage}！${skillMsg}`);
+      }
+      lastStage = currentStage;
+    }
+
+    saveState(state);
+  }, 1000);
+
+  console.log('[main] booted. Mic running, mood engine ticking.');
+}
+
+// 註冊 Alpine 組件（先註冊再 boot，避免競態）
 document.addEventListener('alpine:init', () => {
   window.Alpine.data('petDisplay', () => petDisplayComponent({
     getMood: () => engine.getMood(),
@@ -107,7 +171,6 @@ document.addEventListener('alpine:init', () => {
       state.settings.calibration.baselineDb = null;
       state.settings.calibration.calibratedAt = null;
       saveState(state);
-      // Task 14 會在啟動時偵測到 baselineDb=null 並觸發校準畫面
       location.reload();
     },
     onExport: exportToJson,
@@ -115,6 +178,18 @@ document.addEventListener('alpine:init', () => {
   }));
 
   window.Alpine.data('notifications', notificationsComponent);
+
+  window.Alpine.data('volumeBar', () => ({
+    db: null,
+    widthPct: 0,
+    init() {
+      setInterval(() => {
+        this.db = window.__getDb?.() ?? null;
+        // -80 ~ 0 dB 映射到 0 ~ 100%
+        this.widthPct = this.db == null ? 0 : Math.max(0, Math.min(100, (this.db + 80)));
+      }, 100);
+    },
+  }));
 });
 
 // PWA: 註冊 service worker 讓電子寵物可離線使用
@@ -124,4 +199,5 @@ if ('serviceWorker' in navigator) {
   });
 }
 
-console.log('[main] booted. 試試 window.__setFakeVerdict("veryLoud") 看狀態切換');
+// 啟動
+boot();
