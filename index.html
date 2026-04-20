@@ -23,6 +23,42 @@
     </div>
   </div>
 
+  <!-- 控制列 -->
+  <div x-data="controls" class="bg-white/90 backdrop-blur p-3 border-t flex flex-wrap items-center gap-2">
+    <button @click="setMode('focus')"
+            :class="currentMode === 'focus' ? 'bg-sky-600 text-white' : 'bg-slate-200'"
+            class="px-4 py-2 rounded-lg font-bold">🤫 專心</button>
+    <button @click="setMode('discuss')"
+            :class="currentMode === 'discuss' ? 'bg-sky-600 text-white' : 'bg-slate-200'"
+            class="px-4 py-2 rounded-lg font-bold">💬 討論</button>
+    <button @click="setMode('free')"
+            :class="currentMode === 'free' ? 'bg-sky-600 text-white' : 'bg-slate-200'"
+            class="px-4 py-2 rounded-lg font-bold">🎨 自由</button>
+
+    <div class="flex items-center ml-2">
+      <button @click="adjust(-1)" class="px-3 py-2 bg-slate-200 rounded-l-lg">−</button>
+      <span class="px-3 py-2 bg-white border-y text-sm min-w-[3rem] text-center"
+            x-text="`${currentAdjustment > 0 ? '+' : ''}${currentAdjustment}`"></span>
+      <button @click="adjust(1)" class="px-3 py-2 bg-slate-200 rounded-r-lg">+</button>
+    </div>
+
+    <button @click="togglePause()"
+            :class="isPaused ? 'bg-amber-500 text-white' : 'bg-slate-200'"
+            class="px-4 py-2 rounded-lg ml-2">
+      <span x-text="isPaused ? '▶ 繼續偵測' : '⏸ 暫停偵測'"></span>
+    </button>
+
+    <button @click="toggleMute()"
+            :class="isMuted ? 'bg-slate-700 text-white' : 'bg-slate-200'"
+            class="px-4 py-2 rounded-lg">
+      <span x-text="isMuted ? '🔕 靜音中' : '🔔 通知開'"></span>
+    </button>
+
+    <button @click="resetSession()" class="px-4 py-2 bg-slate-200 rounded-lg ml-auto">
+      🔄 重置本節
+    </button>
+  </div>
+
   <!-- 資訊列 -->
   <div class="bg-white/80 backdrop-blur p-4 flex items-center justify-between border-t">
     <div class="flex items-center gap-4">
