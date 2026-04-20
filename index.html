@@ -16,8 +16,8 @@
   <!-- 寵物區 -->
   <div class="flex-1 flex items-center justify-center relative">
     <div class="text-center transition-all duration-1000" :class="petAnimationClass">
+      <div class="text-4xl mb-4" x-text="stateIcon"></div>
       <div class="text-[200px] leading-none" x-text="petEmoji"></div>
-      <div class="text-4xl mt-4" x-text="stateIcon"></div>
       <div class="mt-8 text-sm opacity-60" x-show="visualState === 'scared'">
         太吵了...小精靈不敢出來
       </div>
