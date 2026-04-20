@@ -21,34 +21,43 @@ STYLE = (
     "NO human hands, NO other animals, NO text."
 )
 
-# 每階段的外型描述（貫穿同一角色的進化）
+# 每階段的外型描述（戲劇化進化，像寶可夢。保留統一元素：薄荷綠 + 頭頂植物 + 大眼 kawaii）
 STAGES = {
     "egg": (
-        "an oval cute mint-green speckled egg with a tiny green sprout at the top, "
-        "no character visible yet, just the egg"
+        "STAGE 1 form — ONLY an oval mint-green speckled egg with tiny green sprout "
+        "at the top. NO creature visible at all, just the egg itself with no face. "
+        "Size: small."
     ),
     "newborn": (
-        "a very small newborn mint-green slime just hatched from its eggshell, "
-        "tiny body, cracked eggshell pieces around its base, oversized round eyes, "
-        "tiny sprout on head"
+        "STAGE 2 form — a tiny round water-droplet shape baby creature hatching from "
+        "a broken eggshell. Jelly-like round body, HUGE sparkly round baby eyes, "
+        "tiny green sprout on head. Cracked eggshell pieces around its base. "
+        "Very small, fits in a palm. No arms, no legs yet, just a blob."
     ),
     "young": (
-        "a small young mint-green slime with a small sprout on its head, "
-        "chubby round body, playful posture"
+        "STAGE 3 form — a small green slime-plant sprout spirit with a pair of tiny "
+        "short arms and short legs standing upright. Still round chubby slime body, "
+        "head has a small leaf sprout. Size of a teacup. Looks like a baby nature spirit."
     ),
     "growth": (
-        "a medium-sized mint-green slime with the sprout now sprouting two small leaves, "
-        "rounder and more confident body, slight chubby cheeks, stronger outline"
+        "STAGE 4 form — a completely different animal shape now: a small mint-green "
+        "FOX-like creature on four legs with pointy fox ears, a fluffy bushy tail, "
+        "leafy collar around neck. Head has two small leaves instead of sprout. "
+        "Size of a cat. Looks like a small forest spirit animal. Clearly NOT a slime anymore."
     ),
     "advanced": (
-        "a large mint-green slime that has evolved, the sprout has grown into a small "
-        "flower bud on top, small decorative crystal spikes emerging from its back, "
-        "more majestic presence but still cute"
+        "STAGE 5 form — a majestic flying beast: a mint-green fox-deer creature with "
+        "large white feathered angel wings spread open, antlers with small leaves, "
+        "long flowing tail ending in a flower bloom, floating slightly above ground. "
+        "Size of a dog. Has a magical ethereal presence, hooves glowing faintly."
     ),
     "final": (
-        "a fully evolved glowing mint-green crystalline slime, the flower on its head "
-        "is in full bloom, soft golden halo of light around it, tiny sparkles floating, "
-        "translucent body with inner glow, majestic but still kawaii"
+        "STAGE 6 form — LEGENDARY DIVINE BEAST: a glowing crystalline mint-green "
+        "eastern dragon-fox hybrid with translucent body, crystal antlers, phoenix "
+        "tail of glowing feathers, iridescent rainbow aura, golden halo floating "
+        "behind head, small sparkles orbiting it, full flower bloom on forehead. "
+        "Floating in mid-air. Imposing majestic size, dramatic pose. Like a "
+        "legendary Pokemon final evolution."
     ),
 }
 
@@ -90,9 +99,7 @@ def main():
             name = f"{stage_key}_{mood_key}"
             out_path = OUT_DIR / f"{name}.png"
             count += 1
-            if out_path.exists() and stage_key == "young":
-                print(f"[{count}/{total}] skip (exists): {name}")
-                continue
+            # 全部重生（差異太小那版要淘汰）
             print(f"[{count}/{total}] gen: {name} ...", end=" ", flush=True)
             prompt = build_prompt(stage_key, mood_key)
             try:
