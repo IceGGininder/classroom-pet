@@ -59,6 +59,16 @@
     </button>
   </div>
 
+  <!-- Toast 區 -->
+  <div x-data="notifications" class="fixed top-4 right-20 z-40 space-y-2 pointer-events-none">
+    <template x-for="t in toasts" :key="t.id">
+      <div class="bg-white text-slate-800 shadow-xl rounded-lg px-4 py-3 max-w-sm pointer-events-auto border-l-4 border-sky-500">
+        <div class="font-bold" x-text="t.title"></div>
+        <div class="text-sm opacity-80" x-text="t.message"></div>
+      </div>
+    </template>
+  </div>
+
   <!-- 右上設定按鈕 -->
   <button @click="$dispatch('open-settings')"
           class="fixed top-4 right-4 bg-white/90 shadow-lg px-3 py-2 rounded-lg text-sm">

@@ -4,17 +4,20 @@
 
 import { loadState, saveState } from './state/storage.js';
 import { createMoodEngine } from './state/moodEngine.js';
-import { getNextStageProgress } from './state/petState.js';
+import { getNextStageProgress, getStageFromExp } from './state/petState.js';
+import { unlockForStage } from './state/skillSystem.js';
 import { petDisplayComponent } from './ui/petDisplay.js';
 import { controlsComponent } from './ui/controls.js';
 import { settingsModalComponent } from './ui/settings.js';
+import { notificationsComponent, notify } from './ui/notifications.js';
 import { exportToJson, importFromJsonFile } from './state/exportImport.js';
 
 // 載入狀態
 const state = loadState();
 const engine = createMoodEngine({ initialMood: state.pet.currentMood });
+let lastStage = state.pet.stage;
 
-// Task 10 階段：用假音量驅動，方便測試 UI
+// Task 12 階段：用假音量驅動 + 升階通知；真麥克風在 Task 14 接上。
 // 在瀏覽器 console 可以手動呼叫：
 //   window.__setFakeVerdict('veryLoud' | 'loud' | 'acceptable' | 'quiet')
 let fakeVerdict = 'quiet';
@@ -30,6 +33,22 @@ setInterval(() => {
   engine.tick(fakeVerdict, currentMode());
   state.pet.currentMood = engine.getMood();
   state.pet.totalExp = (state.pet.totalExp || 0) + engine.consumeSessionExp();
+
+  // 升階偵測 + 技能解鎖
+  const currentStage = getStageFromExp(state.pet.totalExp, state.settings.stageThresholds);
+  if (currentStage !== lastStage) {
+    const skill = unlockForStage(currentStage, state.skills.unlocked);
+    if (skill) {
+      state.skills.unlocked.push({ ...skill, unlockedAt: new Date().toISOString() });
+    }
+    state.pet.stage = currentStage;
+    if (!state.settings.isMuted) {
+      const skillMsg = skill ? ` 學會新技能：${skill.name}！` : '';
+      notify('🎉 升階了！', `${state.pet.name} 進化到 ${currentStage}！${skillMsg}`);
+    }
+    lastStage = currentStage;
+  }
+
   saveState(state);
 }, 1000);
 
@@ -94,6 +113,8 @@ document.addEventListener('alpine:init', () => {
     onExport: exportToJson,
     onImport: importFromJsonFile,
   }));
+
+  window.Alpine.data('notifications', notificationsComponent);
 });
 
 console.log('[main] booted. 試試 window.__setFakeVerdict("veryLoud") 看狀態切換');
