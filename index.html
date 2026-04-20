@@ -11,15 +11,17 @@
 <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
 </head>
 <body class="bg-slate-100 text-slate-800">
-<div x-data="petDisplay" :class="bgClass" class="min-h-screen flex flex-col transition-colors duration-1000">
+<div x-data="petDisplay" class="min-h-screen flex flex-col bg-slate-50">
 
-  <!-- 寵物區 -->
-  <div class="flex-1 flex items-center justify-center relative">
+  <!-- 寵物區：AI 生成的場景圖（表情 + 背景整合） -->
+  <div class="flex-1 flex items-center justify-center relative p-4">
     <div class="text-center transition-all duration-1000" :class="petAnimationClass">
-      <div class="text-4xl mb-4" x-text="stateIcon"></div>
-      <div class="text-[200px] leading-none" x-text="petEmoji"></div>
-      <div class="mt-8 text-sm opacity-60" x-show="visualState === 'scared'">
-        太吵了...小精靈不敢出來
+      <img :src="petImageUrl"
+           :alt="stateText"
+           class="max-h-[60vh] max-w-full object-contain rounded-2xl shadow-xl transition-all duration-700"
+           style="image-rendering: auto;">
+      <div class="mt-3 text-sm text-slate-500">
+        <span x-text="stateText"></span>
       </div>
     </div>
   </div>
