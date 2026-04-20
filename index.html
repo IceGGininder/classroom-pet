@@ -36,11 +36,18 @@
             :class="currentMode === 'free' ? 'bg-sky-600 text-white' : 'bg-slate-200'"
             class="px-4 py-2 rounded-lg font-bold">🎨 自由</button>
 
-    <div class="flex items-center ml-2">
-      <button @click="adjust(-1)" class="px-3 py-2 bg-slate-200 rounded-l-lg">−</button>
+    <div class="flex items-center ml-2"
+         title="調整當前模式的音量靈敏度。往 + 代表更嚴格（小聲就算吵），往 − 代表更寬鬆。每個模式獨立記錄。">
+      <span class="text-xs text-slate-500 mr-2">靈敏度</span>
+      <button @click="adjust(-1)"
+              title="寬鬆一點（班級比較吵時用，寵物不會動不動就躲）"
+              class="px-3 py-2 bg-slate-200 rounded-l-lg hover:bg-slate-300">−</button>
       <span class="px-3 py-2 bg-white border-y text-sm min-w-[3rem] text-center"
+            title="0 = 預設。+3 = 更嚴格 3dB、−2 = 更寬鬆 2dB"
             x-text="`${currentAdjustment > 0 ? '+' : ''}${currentAdjustment}`"></span>
-      <button @click="adjust(1)" class="px-3 py-2 bg-slate-200 rounded-r-lg">+</button>
+      <button @click="adjust(1)"
+              title="嚴格一點（希望班級更安靜時用，寵物更容易被吵到）"
+              class="px-3 py-2 bg-slate-200 rounded-r-lg hover:bg-slate-300">+</button>
     </div>
 
     <button @click="togglePause()"
