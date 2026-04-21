@@ -8,7 +8,9 @@ from pathlib import Path
 from google import genai
 from google.genai import types
 
-API_KEY = "GEMINI_API_KEY_REDACTED"
+API_KEY = os.environ.get("GEMINI_API_KEY")
+if not API_KEY:
+    raise SystemExit("ERROR: 請先 `set GEMINI_API_KEY=your-key`（PowerShell: `$env:GEMINI_API_KEY='your-key'`）")
 OUT_DIR = Path(r"D:/CCdesk/Projects/classroom-pet/assets/pets")
 OUT_DIR.mkdir(parents=True, exist_ok=True)
 
